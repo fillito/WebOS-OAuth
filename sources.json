@@ -1,0 +1,15 @@
+[
+    {"source": "app/assistants/stage-assistant.js"},
+    {"source": "app/assistants/utils/oauth.js"},
+    ///
+    /// Other Scenes Sources
+    ///
+    {
+        "scenes": "oauth",
+        "source": "app/assistants/oauth-assistant.js"
+    },
+    {
+        "scenes": "oauthbrowser",
+        "source": "app/assistants/oauthbrowser-assistant.js"
+    }
+]
