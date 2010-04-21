@@ -1,6 +1,6 @@
 /// WebOS OAuth \\\
 
-This Files where donwloaded from http://github.com/fillito/WebOS-OAuth
+This Files where downloaded from http://github.com/fillito/WebOS-OAuth
 
 By: Daniel García (fillito)
 E-Mail: fillito@gmail.com
@@ -10,10 +10,10 @@ Madrid - Spain
 Description : 
 ------------
 
-    This is just a small librarly for making OAuth Authentications in Palm WebOS. 
+    This is just a small library for making OAuth Authentications in Palm WebOS. 
 You just have to instantiate it passing a json object with the complete OAuth configurations (requestToken Url, authorize Url, accessToken Url, consumer_key, consumer_key_secret) and push it as a normal Mojo Scene. 
 
-The application MUST be configured as a web-aplication on the server side (non client application).
+The application MUST be configured as a web-application on the server side (non client application).
 This library captures the callback redirect url to get the final token to complete the authentication. 
 
 
@@ -47,6 +47,21 @@ Installation :
 	 };
 	 Mojo.Controller.stageController.pushScene('oauth',oauthConfig);	
 	
+
+Web App Configuration :
+----------------------
+
+This library does a little tricky hack so you can make an OAuth Authentication for any OAuth API. 
+Some OAuth API offers two types of application authentication : web app & client app.
+Clients App type returns a PIN code that you can use as authentication token, but not all API offers this method. 
+
+This library enable OAuth on WebOS ONLY for Web App type Authentication. If you know a little bit about OAuth, you will realise that web app type needs a Callback URL to return the oauth token as a GET parameter. The trick this library uses, is to capture this token as the server redirects. 
+
+To enable this, the only thing you have to take into account, is to configure your application (registered to access the API) callback URL to redirect to www.google.com.  <----- IMPORTANT !!!!
+
+This library listen the embedded web browser to be redirected to www.google.com/?oauth_token=******* , so you MUST set it so it works.
+
+- Contact me if you have dubts about it -
 
 
 Comments : 
