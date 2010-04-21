@@ -10,7 +10,6 @@ function OauthAssistant(oauthConfig) {
     this.consumer_key_secret=oauthConfig.consumer_key_secret;
     this.url='';
     this.requested_token='';
-    this.appCallback=oauthConfig.appCallback;
 }
 OauthAssistant.prototype.setup = function() {
     this.requestToken();
