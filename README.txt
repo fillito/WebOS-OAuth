@@ -53,7 +53,7 @@ Web App Configuration :
 
 This library does a little tricky hack so you can make an OAuth Authentication for any OAuth API. 
 Some OAuth API offers two types of application authentication : web app & client app.
-Clients App type returns a PIN code that you can use as authentication token, but not all API offers this method. 
+Client Apps type returns a PIN code that you can use as authentication token, but not all API offers this method. 
 
 This library enable OAuth on WebOS ONLY for Web App type Authentication. If you know a little bit about OAuth, you will realise that web app type needs a Callback URL to return the oauth token as a GET parameter. The trick this library uses, is to capture this token as the server redirects. 
 
@@ -67,7 +67,7 @@ This library listen the embedded web browser to be redirected to www.google.com/
 Comments : 
 ---------
 
-This is just the first version of this library. Please, contact me if you need anything related to this library or you want to make any suggestion for improve it.
+This is just the first version of this library. Please, contact me if you need anything related to this library or you want to make any suggestion to improve it.
 
 Thanks for download !!
 Fork me at GitHub !!  http://github.com/fillito/WebOS-OAuth
