@@ -6,6 +6,7 @@ By: Daniel García (fillito)
 E-Mail: fillito@gmail.com
 Web: www.fillito.com
 Madrid - Spain
+Last Update : 2010 April 30
 
 Description : 
 ------------
@@ -43,7 +44,8 @@ Installation :
 		authorizeUrl:'http:// -domain- /oauth/authorize',
 		accessTokenUrl:'http:// -domain- /oauth/access_token',
 		consumer_key:' -your consumer key- ',
-		consumer_key_secret:' -your consumer key secret- '
+		consumer_key_secret:' -your consumer key secret- ',
+		callback:'http://www.google.com' // Optional 
 	 };
 	 Mojo.Controller.stageController.pushScene('oauth',oauthConfig);	
 	
@@ -62,6 +64,11 @@ To enable this, the only thing you have to take into account, is to configure yo
 This library listen the embedded web browser to be redirected to www.google.com/?oauth_token=******* , so you MUST set it so it works.
 
 - Contact me if you have dubts about it -
+ ------------------------------
+|   UPDATE ! : 2010 April 30   |
+ ------------------------------
+
+APIs also accept the callback to be passed as a parameter throught the OAuth process. Configure it on your application OAuth Server if it's mandatory or on your self application if this option is enabled.
 
 
 Comments : 

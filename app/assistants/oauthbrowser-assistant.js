@@ -1,5 +1,6 @@
-function OauthbrowserAssistant(URL) {
-    this.storyURL = URL;
+function OauthbrowserAssistant(oauthBrowserParams) {
+    this.storyURL = oauthBrowserParams.authUrl;
+    this.callbackURL=oauthBrowserParams.callbackUrl
 }
 OauthbrowserAssistant.prototype.setup = function() {
     this.controller.setupWidget("browser", {url: this.storyURL}, this.storyViewModel = {});
@@ -7,10 +8,8 @@ OauthbrowserAssistant.prototype.setup = function() {
 }
 OauthbrowserAssistant.prototype.titleChanged = function(event) {
     var callbackUrl=event.url;
-    var responseVars=callbackUrl.split("?");
-    if(responseVars[0]=='http://www.google.com/' || responseVars[0]=='http://www.google.com'){
-	// Correct return url (hacked using google.com as callback url)
-	var token=responseVars[1].replace("oauth_token=","");
+    var responseVars=callbackUrl.split("?");    
+    if(responseVars[0]==this.callbackURL+'/' || responseVars[0]==this.callbackURL){		
 	//Mojo.Controller.stageController.popSceneTo('oauth',responseVars[1]);
 	this.controller.stageController.popScenesTo('oauth',responseVars[1]);
     }
