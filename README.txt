@@ -6,7 +6,7 @@ By: Daniel García (fillito)
 E-Mail: fillito@gmail.com
 Web: www.fillito.com
 Madrid - Spain
-Last Update : 2010 April 30
+Last Update : 2010 May 14
 
 Description : 
 ------------
@@ -41,11 +41,13 @@ Installation :
 
 	var oauthConfig={
 		requestTokenUrl:'http:// -domain- /oauth/request_token',
+		requestTokenMethod:'GET', // Optional - 'GET' by default if not specified
 		authorizeUrl:'http:// -domain- /oauth/authorize',
 		accessTokenUrl:'http:// -domain- /oauth/access_token',
+		accessTokenMethod:'GET', // Optional - 'GET' by default if not specified
 		consumer_key:' -your consumer key- ',
 		consumer_key_secret:' -your consumer key secret- ',
-		callback:'http://www.google.com' // Optional 
+		callback:'http://www.google.com' // Optional - 'oob' by default if not specified
 	 };
 	 Mojo.Controller.stageController.pushScene('oauth',oauthConfig);	
 	

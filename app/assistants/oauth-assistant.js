@@ -13,6 +13,14 @@ function OauthAssistant(oauthConfig) {
 	this.callback=oauthConfig.callback;
     else
 	this.callback='oob';
+    if(oauthConfig.requestTokenMethod!=undefined)
+	this.requestTokenMethod=oauthConfig.requestTokenMethod;
+    else
+	this.requestTokenMethod='GET';
+    if(oauthConfig.accessTokenMethod!=undefined)
+	this.accessTokenMethod=oauthConfig.accessTokenMethod;
+    else
+	this.accessTokenMethod='GET';
     this.url='';
     this.requested_token='';
 }
@@ -27,7 +35,7 @@ OauthAssistant.prototype.activate = function(event) {
 	if(result!=null){
 	    var responseVars=event.split("&");
 	    var token=responseVars[0].replace("oauth_token=","");	    
-	    this.oauth_verifier=responseVars[1].replace("oauth_verifier=","");
+	    this.oauth_verifier=responseVars[1].replace("oauth_verifier=","");	    
 	    this.exchangeToken(token);
 	}
     }
@@ -44,7 +52,7 @@ OauthAssistant.prototype.signHeader = function (params){
     if(params==undefined)
 	    params='';
     if(this.method==undefined)
-	    this.method='GET';    
+	    this.method='GET'; 
     var timestamp=OAuth.timestamp();
     var nonce=OAuth.nonce(11);
     this.accessor = {consumerSecret: this.consumer_key_secret, tokenSecret : this.tokenSecret};
@@ -63,7 +71,7 @@ OauthAssistant.prototype.signHeader = function (params){
 }
 OauthAssistant.prototype.requestToken = function (){
     this.url=this.requestTokenUrl;
-    this.method='GET';
+    this.method=this.requestTokenMethod;
     this.signHeader("oauth_callback="+this.callback);
     new Ajax.Request(this.url,{
 	method: this.method,
@@ -72,7 +80,7 @@ OauthAssistant.prototype.requestToken = function (){
 	onComplete:function(response){
 	    var response_text=response.responseText;
 	    var responseVars=response_text.split("&");
-	    var auth_url=this.authorizeUrl+"?"+responseVars[0];
+	    var auth_url=this.authorizeUrl+"?"+responseVars[0]+"&oauth_consumer="+this.consumer_key;
 	    var oauth_token=responseVars[0].replace("oauth_token=","");
 	    var oauth_token_secret=responseVars[1].replace("oauth_token_secret=","");
 	    this.requested_token=oauth_token;
@@ -81,14 +89,15 @@ OauthAssistant.prototype.requestToken = function (){
 	    var oauthBrowserParams={
 		authUrl:auth_url,
 		callbackUrl:this.callback
-	    }
+	    }	    
 	    Mojo.Controller.stageController.pushScene({name:"oauthbrowser",transition:Mojo.Transition.none},oauthBrowserParams);
 	}.bind(this)
     });
 }
 OauthAssistant.prototype.exchangeToken = function (token){
-    this.url=this.accessTokenUrl;
-    this.method='POST';    
+    this.url=this.accessTokenUrl;    
+    this.token=token;
+    this.method=this.accessTokenMethod;
     this.signHeader("oauth_verifier="+this.oauth_verifier);
     new Ajax.Request(this.url,{
 	method: this.method,
