@@ -6,7 +6,7 @@ By: Daniel García (fillito)
 E-Mail: fillito@gmail.com
 Web: www.fillito.com
 Madrid - Spain
-Last Update : 2010 May 14
+Last Update : 2010 May 28
 
 Description : 
 ------------
@@ -16,7 +16,6 @@ You just have to instantiate it passing a json object with the complete OAuth co
 
 The application MUST be configured as a web-application on the server side (non client application).
 This library captures the callback redirect url to get the final token to complete the authentication. 
-
 
 
 Installation :
@@ -29,17 +28,14 @@ Installation :
    	 {
         	"scenes": "oauth",
 	        "source": "app/assistants/oauth-assistant.js"
-	 },
-	 {
-        	"scenes": "oauthbrowser",
-	        "source": "app/assistants/oauthbrowser-assistant.js"
-    	 } 
+	 } 
 
      So your application can access the library files
 
 3. Simple set up a json object containing the configuration data as shown here and push the oauth Scene
 
 	var oauthConfig={
+		callbackScene:'assistantName', //Name of the assistant to be called on the OAuth Success
 		requestTokenUrl:'http:// -domain- /oauth/request_token',
 		requestTokenMethod:'GET', // Optional - 'GET' by default if not specified
 		authorizeUrl:'http:// -domain- /oauth/authorize',

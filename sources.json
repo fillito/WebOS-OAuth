@@ -7,9 +7,5 @@
     {
         "scenes": "oauth",
         "source": "app/assistants/oauth-assistant.js"
-    },
-    {
-        "scenes": "oauthbrowser",
-        "source": "app/assistants/oauthbrowser-assistant.js"
     }
 ]

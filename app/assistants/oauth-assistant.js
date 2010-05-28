@@ -4,6 +4,7 @@ function OauthAssistant(oauthConfig) {
     this.authHeader=null;
     this.method=null;
     this.oauth_verifier=null;
+    this.callbackScene=oauthConfig.callbackScene;
     this.requestTokenUrl=oauthConfig.requestTokenUrl;
     this.authorizeUrl=oauthConfig.authorizeUrl;
     this.accessTokenUrl=oauthConfig.accessTokenUrl;
@@ -23,36 +24,52 @@ function OauthAssistant(oauthConfig) {
 	this.accessTokenMethod='GET';
     this.url='';
     this.requested_token='';
+    this.exchangingToken=false;
 }
 OauthAssistant.prototype.setup = function() {
+    this.controller.setupWidget('browser',{},this.storyViewModel = {});
+    this.reloadModel = {
+	label: $L('Reload'),
+	icon: 'refresh',
+	command: 'refresh'
+	};
+    this.stopModel = {
+	label: $L('Stop'),
+	icon: 'load-progress',
+	command: 'stop'
+	 };
+    this.cmdMenuModel = {
+	visible: true,
+	items: [{}, this.reloadModel]
+	 };
+    this.controller.setupWidget(Mojo.Menu.commandMenu, {menuClass:'no-fade'}, this.cmdMenuModel);
+    Mojo.Event.listen(this.controller.get('browser'),Mojo.Event.webViewLoadProgress, this.loadProgress.bind(this));
+    Mojo.Event.listen(this.controller.get('browser'),Mojo.Event.webViewLoadStarted, this.loadStarted.bind(this));
+    Mojo.Event.listen(this.controller.get('browser'),Mojo.Event.webViewLoadStopped, this.loadStopped.bind(this));
+    Mojo.Event.listen(this.controller.get('browser'),Mojo.Event.webViewLoadFailed, this.loadStopped.bind(this));
+    Mojo.Event.listen(this.controller.get('browser'),Mojo.Event.webViewTitleUrlChanged, this.titleChanged.bind(this));
     this.requestToken();
 }
-
-OauthAssistant.prototype.activate = function(event) {
-    var paramType=typeof event;
-    if(paramType=='string'){
-	result=event.match(/oauth_token=*/g);
+OauthAssistant.prototype.titleChanged = function(event) {
+    var callbackUrl=event.url;
+    var responseVars=callbackUrl.split("?");
+    if(!this.exchangingToken && (responseVars[0]==this.callbackURL+'/' || responseVars[0]==this.callbackURL)){
+	$('browser').hide();
+	var response_param=responseVars[1];
+	var result=response_param.match(/oauth_token=*/g);
 	if(result!=null){
-	    var responseVars=event.split("&");
-	    var token=responseVars[0].replace("oauth_token=","");	    
-	    this.oauth_verifier=responseVars[1].replace("oauth_verifier=","");	    
+	    var params=response_param.split("&");
+	    var token=params[0].replace("oauth_token=","");
+	    this.oauth_verifier=params[1].replace("oauth_verifier=","");
 	    this.exchangeToken(token);
 	}
     }
-}
-
-OauthAssistant.prototype.deactivate = function(event) {
-	
-}
-
-OauthAssistant.prototype.cleanup = function(event) {
-
 }
 OauthAssistant.prototype.signHeader = function (params){
     if(params==undefined)
 	    params='';
     if(this.method==undefined)
-	    this.method='GET'; 
+	    this.method='GET';
     var timestamp=OAuth.timestamp();
     var nonce=OAuth.nonce(11);
     this.accessor = {consumerSecret: this.consumer_key_secret, tokenSecret : this.tokenSecret};
@@ -89,13 +106,14 @@ OauthAssistant.prototype.requestToken = function (){
 	    var oauthBrowserParams={
 		authUrl:auth_url,
 		callbackUrl:this.callback
-	    }	    
-	    Mojo.Controller.stageController.pushScene({name:"oauthbrowser",transition:Mojo.Transition.none},oauthBrowserParams);
+	    }
+	    this.instanceBrowser(oauthBrowserParams);
 	}.bind(this)
     });
 }
 OauthAssistant.prototype.exchangeToken = function (token){
-    this.url=this.accessTokenUrl;    
+    this.exchangingToken=true;
+    this.url=this.accessTokenUrl;
     this.token=token;
     this.method=this.accessTokenMethod;
     this.signHeader("oauth_verifier="+this.oauth_verifier);
@@ -104,8 +122,112 @@ OauthAssistant.prototype.exchangeToken = function (token){
 	encoding: 'UTF-8',
 	requestHeaders:['Authorization',this.authHeader],
 	onComplete:function(response){
-	    
+	    var response_text=response.responseText;
+	    Mojo.Controller.stageController.swapScene({name:this.callbackScene,transition:Mojo.Transition.none},{source:'oauth',response:response_text});
 	}.bind(this)
     });
+}
+OauthAssistant.prototype.instanceBrowser = function(oauthBrowserParams) {
+    this.storyURL = oauthBrowserParams.authUrl;
+    this.callbackURL=oauthBrowserParams.callbackUrl
+    $('browser').mojo.openURL(oauthBrowserParams.authUrl);
+}
+OauthAssistant.prototype.handleCommand = function(event) {
+    if (event.type == Mojo.Event.command) {
+	switch (event.command) {
+	    case 'refresh':
+		this.controller.get('browser').mojo.reloadPage();
+		break;
+	    case 'stop':
+		this.controller.get('browser').mojo.stopLoad();
+		break;
+	}
+    }
+ };
+  //  loadStarted - switch command button to stop icon & command
+ //
+ OauthAssistant.prototype.loadStarted = function(event) {
+ 	this.cmdMenuModel.items.pop(this.reloadModel);
+ 	this.cmdMenuModel.items.push(this.stopModel);
+ 	this.controller.modelChanged(this.cmdMenuModel);
+  	this.currLoadProgressImage = 0;
+ };
+  //  loadStopped - switch command button to reload icon & command
+ OauthAssistant.prototype.loadStopped = function(event) {
+ 	this.cmdMenuModel.items.pop(this.stopModel);
+ 	this.cmdMenuModel.items.push(this.reloadModel);
+ 	this.controller.modelChanged(this.cmdMenuModel);
+ };
+  //  loadProgress - check for completion, then update progress
+ OauthAssistant.prototype.loadProgress = function(event) {
+  	var percent = event.progress;
+ 	try {
+ 		if (percent > 100) {
+ 			percent = 100;
+ 		}
+ 		else if (percent < 0) {
+ 			percent = 0;
+ 		}
+  		// Update the percentage complete
+ 		this.currLoadProgressPercentage = percent;
+  		// Convert the percentage complete to an image number
+ 		// Image must be from 0 to 23 (24 images available)
+ 		var image = Math.round(percent / 4.1);
+ 		if (image > 23) {
+ 			image = 23;
+ 		}
+  		// Ignore this update if the percentage is lower than where we're showing
+ 		if (image < this.currLoadProgressImage) {
+ 			return;
+ 		}
+  		// Has the progress changed?
+ 		if (this.currLoadProgressImage != image) {
+ 			// Cancel the existing animator if there is one
+ 			if (this.loadProgressAnimator) {
+ 				this.loadProgressAnimator.cancel();
+ 				delete this.loadProgressAnimator;
+ 			}
+                          // Animate from the current value to the new value
+ 			var icon = this.controller.select('div.load-progress')[0];
+ 			if (icon) {
+ 				this.loadProgressAnimator = Mojo.Animation.animateValue(Mojo.Animation.queueForElement(icon),
+                                            "linear", this._updateLoadProgress.bind(this), {
+ 					from: this.currLoadProgressImage,
+ 					to: image,
+ 					duration: 0.5
+ 				});
+ 			}
+ 		}
+ 	}
+ 	catch (e) {
+ 		Mojo.Log.logException(e, e.description);
+ 	}
+ };
+  OauthAssistant.prototype._updateLoadProgress = function(image) {
+  // Find the progress image
+ 	image = Math.round(image);
+ 	// Don't do anything if the progress is already displayed
+ 	if (this.currLoadProgressImage == image) {
+ 		return;
+ 	}
+ 	var icon = this.controller.select('div.load-progress');
+ 	if (icon && icon[0]) {
+ 		icon[0].setStyle({'background-position': "0px -" + (image * 48) + "px"});
+ 	}
+ 	this.currLoadProgressImage = image;
+ };
+OauthAssistant.prototype.activate = function(event) {
+
+}
+
+OauthAssistant.prototype.deactivate = function(event) {
+
+}
+OauthAssistant.prototype.cleanup = function(event) {
+    Mojo.Event.stopListening(this.controller.get('browser'),Mojo.Event.webViewLoadProgress, this.loadProgress);
+    Mojo.Event.stopListening(this.controller.get('browser'),Mojo.Event.webViewLoadStarted, this.loadStarted);
+    Mojo.Event.stopListening(this.controller.get('browser'),Mojo.Event.webViewLoadStopped, this.loadStopped);
+    Mojo.Event.stopListening(this.controller.get('browser'),Mojo.Event.webViewLoadFailed, this.loadStopped);
+    Mojo.Event.stopListening(this.controller.get('browser'),Mojo.Event.webViewTitleUrlChanged, this.titleChanged);
 }
 
