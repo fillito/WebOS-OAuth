@@ -54,7 +54,7 @@ OauthAssistant.prototype.titleChanged = function(event) {
     var callbackUrl=event.url;
     var responseVars=callbackUrl.split("?");
     if(!this.exchangingToken && (responseVars[0]==this.callbackURL+'/' || responseVars[0]==this.callbackURL)){
-	$('browser').hide();
+	this.controller.get('browser').hide();
 	var response_param=responseVars[1];
 	var result=response_param.match(/oauth_token=*/g);
 	if(result!=null){
@@ -123,14 +123,14 @@ OauthAssistant.prototype.exchangeToken = function (token){
 	requestHeaders:['Authorization',this.authHeader],
 	onComplete:function(response){
 	    var response_text=response.responseText;
-	    Mojo.Controller.stageController.swapScene({name:this.callbackScene,transition:Mojo.Transition.none},{source:'oauth',response:response_text});
+	    this.controller.stageController.swapScene({name:this.callbackScene,transition:Mojo.Transition.none},{source:'oauth',response:response_text});
 	}.bind(this)
     });
 }
 OauthAssistant.prototype.instanceBrowser = function(oauthBrowserParams) {
     this.storyURL = oauthBrowserParams.authUrl;
     this.callbackURL=oauthBrowserParams.callbackUrl
-    $('browser').mojo.openURL(oauthBrowserParams.authUrl);
+    this.controller.get('browser').mojo.openURL(oauthBrowserParams.authUrl);
 }
 OauthAssistant.prototype.handleCommand = function(event) {
     if (event.type == Mojo.Event.command) {
